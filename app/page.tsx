@@ -1,82 +1,32 @@
 // Página Principal - Portal Premium Sport
+'use client';
+
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import CardVeiculo from '@/components/CardVeiculo';
-import { Veiculo } from '@/types/database.types';
-import { Search, MapPin, ChevronDown, Instagram, Facebook, Youtube } from 'lucide-react';
-
-// Dados Mockados - Veículos em Destaque
-const VEICULOS_DESTAQUE: Veiculo[] = [
-  {
-    id: '1',
-    marca: 'Porsche',
-    modelo: '911 GT3',
-    versao: 'GT3 RS 4.0',
-    ano: 2024,
-    preco: 1850000,
-    km: 2500,
-    cambio: 'Automático PDK',
-    combustivel: 'Gasolina',
-    cor: 'Branco Carrara',
-    blindado: false,
-    foto_capa: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80',
-    fotos: [],
-    opcionais: ['Bancos Esportivos', 'Suspensão Adaptativa', 'Pacote Fibra de Carbono'],
-    descricao: 'Esportivo de alta performance com motor boxer 4.0 naturalmente aspirado.',
-  },
-  {
-    id: '2',
-    marca: 'Lamborghini',
-    modelo: 'Huracán',
-    versao: 'EVO RWD Spyder',
-    ano: 2023,
-    preco: 2950000,
-    km: 1200,
-    cambio: 'Automático DCT',
-    combustivel: 'Gasolina',
-    cor: 'Verde Mantis',
-    blindado: false,
-    foto_capa: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&q=80',
-    fotos: [],
-    opcionais: ['Teto Conversível', 'Sistema de Som B&O', 'Rodas 20 polegadas'],
-    descricao: 'Super esportivo italiano com motor V10 5.2 e tração traseira.',
-  },
-  {
-    id: '3',
-    marca: 'BMW',
-    modelo: 'M4',
-    versao: 'Competition xDrive',
-    ano: 2024,
-    preco: 980000,
-    km: 800,
-    cambio: 'Automático M Steptronic',
-    combustivel: 'Gasolina',
-    cor: 'Azul São Marino',
-    blindado: true,
-    foto_capa: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80',
-    fotos: [],
-    opcionais: ['M Driver Package', 'Suspensão M Adaptativa', 'Teto Solar Panorâmico'],
-    descricao: 'Cupê esportivo alemão com motor 6 cilindros biturbo e tração integral.',
-  },
-  {
-    id: '4',
-    marca: 'Audi',
-    modelo: 'RS6 Avant',
-    versao: 'Performance',
-    ano: 2024,
-    preco: 1250000,
-    km: 1500,
-    cambio: 'Automático Tiptronic',
-    combustivel: 'Gasolina',
-    cor: 'Cinza Nardo',
-    blindado: false,
-    foto_capa: 'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=800&q=80',
-    fotos: [],
-    opcionais: ['Suspensão a Ar', 'Bang & Olufsen 3D', 'Matrix LED'],
-    descricao: 'Wagon esportiva com motor V8 4.0 TFSI biturbo e 630 cv de potência.',
-  },
-];
+import { AnuncioComVeiculo } from '@/types/database.types';
+import { Search, MapPin, ChevronDown, Instagram, Facebook, Youtube, Loader2, PackageOpen } from 'lucide-react';
+import { buscarAnunciosAtivos } from '@/api/anuncios';
 
 export default function Home() {
+  const [anuncios, setAnuncios] = useState<AnuncioComVeiculo[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    carregarAnuncios();
+  }, []);
+
+  async function carregarAnuncios() {
+    try {
+      setLoading(true);
+      const data = await buscarAnunciosAtivos();
+      setAnuncios(data);
+    } catch (error) {
+      console.error('Erro ao carregar anúncios:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <div className="bg-slate-950">
       {/* Navbar */}
@@ -156,11 +106,28 @@ export default function Home() {
           </div>
 
           {/* Grid de Veículos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {VEICULOS_DESTAQUE.map((veiculo) => (
-              <CardVeiculo key={veiculo.id} veiculo={veiculo} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <Loader2 className="text-orange-500 animate-spin mx-auto mb-4" size={48} />
+                <p className="text-slate-400 text-lg">Carregando estoque premium...</p>
+              </div>
+            </div>
+          ) : anuncios.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <PackageOpen className="text-slate-600 mb-4" size={64} />
+              <h3 className="text-2xl font-bold text-white mb-2">Nenhum veículo disponível</h3>
+              <p className="text-slate-400">
+                Nosso estoque está sendo atualizado. Volte em breve para conferir novidades.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {anuncios.map((anuncio) => (
+                <CardVeiculo key={anuncio.id} veiculo={anuncio.veiculos} />
+              ))}
+            </div>
+          )}
 
           {/* Botão Ver Mais */}
           <div className="text-center mt-12">

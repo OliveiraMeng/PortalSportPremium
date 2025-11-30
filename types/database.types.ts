@@ -25,3 +25,8 @@ export interface Anuncio {
   status: 'ativo' | 'pendente' | 'vendido';
   data_criacao: string;
 }
+
+// Tipo para resultado de JOIN entre Anuncio e Veiculo
+export interface AnuncioComVeiculo extends Anuncio {
+  veiculos: Veiculo;
+}
